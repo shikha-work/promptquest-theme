@@ -826,11 +826,10 @@ function showError(messageElement, text) {
 
 // Check configuration on page load
 document.addEventListener('DOMContentLoaded', function() {
-    var api_key="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiN2EwMTk0ZWMwYjAwZTI1OWQzYjBmZjM2OWQ0YmE5MWFmODA3OWY3MmIwYTZjZDg1MjFhYzUwM2RlOTdkMDFhNzAwMDZkOTBkNTUzYjVlNDkiLCJpYXQiOjE3NzA1NTAzMjMuOTc2MjMyLCJuYmYiOjE3NzA1NTAzMjMuOTc2MjM0LCJleHAiOjQ5MjYyMjM5MjMuOTY3NTY1LCJzdWIiOiIyMTE2NzcxIiwic2NvcGVzIjpbXX0.Omp4qOicbtEMzPandeG_9Gwc3Oap7HvJ_ZRzaB2kWj7WTCa5t6J5Q894thpd4TXWz_BhLZiH2iswtJ3Kl48wSAY3BTPtpw83muvGFyJdoS_ppKBk-MiXCHmaLENHUdLqqY6ZKicPIWnY9iHhgWKk0PK3uS0rshx_Ij_Z_5_k8BHZsW2JPmtoZ3ViJPv4Ytnl22WCUtK3quEz7ssHVWS-0tIZDJwMSrzW5naHRwdpWRJZFdkcgnFwi-1y1miCgZ35uIK523U80YsyTId7AqiNfDSCOu4HKW0FxydPOBigEP06w-5hB_n74m_HUNo9Vq2M-It0rww_57FzIa8ImYZD2Lkn5Ycnn5L8wFVW5a48bLXllQrtI7ciO5huAjDyqdOwj2X6uftbVsIwMFe-krKmJdKG_YU71dAXiDwO7b5A8seNCsC22WVmb_Dftvx-vDBsb3igckfnJSFB55qC-A8Jmb0SiyIBgR-xQQLi47Te3ffZVTV9ZMHV8nP118L4V1scWbYjRFuiDwd48Rm5ibdMQqjOU_sfC85zpMsjCXZ9b2jz8MtVmeKzEAFZzhjOgK383eAvYf6Qcy2Gih-YGaTX88BnO1xJUOst2q_RWYscNp0PNymTt0zM2D7JjV2zI0hbd_uPa7s6w7Rn6UHvxD8UImG9jdFUd2hvbdkIYe_BlFg";
     if (MAILERLITE_CONFIG.debug) {
         console.log('🚀 PromptQuest Email Collection initialized');
         
-        if (MAILERLITE_CONFIG.apiKey === api_key) {
+        if (MAILERLITE_CONFIG.apiKey === 'YOUR_MAILERLITE_API_KEY_HERE') {
             console.warn('⚠️ WARNING: MailerLite API key not configured!');
             console.log('📝 To fix: Edit page-landing.php and add your API key from mailerlite.com');
         } else {
