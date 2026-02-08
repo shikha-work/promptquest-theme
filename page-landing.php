@@ -1,10 +1,10 @@
 <?php
 /**
  * Template Name: PromptQuest Landing Page (Full Width)
- * Description: Full-width landing page template with no header, footer, or sidebar
+ * Description: Full-width landing page with MailerLite email collection
  * 
  * @package PromptQuest
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 // Prevent direct access
@@ -207,6 +207,7 @@ if (!defined('ABSPATH')) {
         border-radius: 12px;
         background: rgba(255,255,255,0.95);
         color: #0F172A;
+        transition: all 0.3s ease;
     }
 
     .pq-email-input:focus {
@@ -214,6 +215,11 @@ if (!defined('ABSPATH')) {
         border-color: #22C55E;
         background: white;
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    }
+
+    .pq-email-input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
     .pq-cta-button {
@@ -229,10 +235,16 @@ if (!defined('ABSPATH')) {
         box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
     }
 
-    .pq-cta-button:hover {
+    .pq-cta-button:hover:not(:disabled) {
         background: #16A34A;
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6);
+    }
+
+    .pq-cta-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .pq-social-proof {
@@ -406,10 +418,27 @@ if (!defined('ABSPATH')) {
         color: white;
         font-weight: 600;
         text-align: center;
+        animation: slideIn 0.5s ease;
     }
 
     .pq-success-message.show {
         display: block;
+    }
+
+    .pq-success-message.error {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #EF4444;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .pq-preview-text {
@@ -492,7 +521,7 @@ if (!defined('ABSPATH')) {
                     required
                     id="pqEmailInput1"
                 >
-                <button type="submit" class="pq-cta-button">
+                <button type="submit" class="pq-cta-button" id="pqButton1">
                     Join the Waitlist (Free)
                 </button>
             </form>
@@ -589,7 +618,7 @@ if (!defined('ABSPATH')) {
                     required
                     id="pqEmailInput2"
                 >
-                <button type="submit" class="pq-cta-button">
+                <button type="submit" class="pq-cta-button" id="pqButton2">
                     Get Early Access
                 </button>
             </form>
@@ -602,34 +631,212 @@ if (!defined('ABSPATH')) {
 </div>
 
 <script>
+/**
+ * PromptQuest Email Collection with MailerLite
+ * 
+ * SETUP INSTRUCTIONS:
+ * 1. Get your MailerLite API key from: https://dashboard.mailerlite.com/integrations/api
+ * 2. Replace 'YOUR_MAILERLITE_API_KEY_HERE' below with your actual API key
+ * 3. (Optional) Create a group in MailerLite and add the group ID
+ * 4. Save and test!
+ */
+
+// ============================================
+// CONFIGURATION - EDIT THIS SECTION
+// ============================================
+
+var MAILERLITE_CONFIG = {
+    // REQUIRED: Your MailerLite API Key (get from: mailerlite.com → Integrations → Developer API)
+    apiKey: 'YOUR_MAILERLITE_API_KEY_HERE',
+    
+    // OPTIONAL: Group ID to add subscribers to a specific group
+    // Leave as null to add to "All subscribers" group
+    groupId: null,
+    
+    // Enable/disable console logging for debugging
+    debug: true
+};
+
+// ============================================
+// FORM SUBMISSION HANDLER
+// ============================================
+
 function handlePQSubmit(event, formNumber) {
     event.preventDefault();
     
+    // Get form elements
     var input = document.getElementById('pqEmailInput' + formNumber);
     var form = document.getElementById('pqEmailForm' + formNumber);
     var message = document.getElementById('pqSuccess' + formNumber);
+    var button = document.getElementById('pqButton' + formNumber);
     
-    var email = input.value;
+    var email = input.value.trim();
     
-    // Log email (you can send to your backend here)
-    console.log('Email submitted:', email);
+    // Validate email
+    if (!isValidEmail(email)) {
+        showError(message, 'Please enter a valid email address');
+        return false;
+    }
     
-    // Show success message
-    message.classList.add('show');
+    // Check if API key is configured
+    if (MAILERLITE_CONFIG.apiKey === 'YOUR_MAILERLITE_API_KEY_HERE') {
+        console.error('⚠️ MailerLite API key not configured! Please add your API key in page-landing.php');
+        showError(message, 'Email service not configured. Please contact support.');
+        return false;
+    }
     
-    // Hide form
-    form.style.display = 'none';
+    // Disable form during submission
+    input.disabled = true;
+    button.disabled = true;
+    button.textContent = 'Submitting...';
     
-    // TODO: Integrate with your email service (MailerLite, ConvertKit, etc.)
-    // Example:
-    // fetch('https://your-backend.com/api/subscribe', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ email: email })
-    // });
+    // Log for debugging
+    if (MAILERLITE_CONFIG.debug) {
+        console.log('📧 Submitting email to MailerLite:', email);
+    }
+    
+    // Prepare subscriber data
+    var subscriberData = {
+        email: email,
+        fields: {
+            source: 'PromptQuest Landing Page',
+            form_location: formNumber === 1 ? 'Hero Section' : 'Bottom CTA',
+            signup_date: new Date().toISOString()
+        }
+    };
+    
+    // Add to specific group if configured
+    if (MAILERLITE_CONFIG.groupId) {
+        subscriberData.groups = [MAILERLITE_CONFIG.groupId];
+    }
+    
+    // Send to MailerLite API
+    fetch('https://connect.mailerlite.com/api/subscribers', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + MAILERLITE_CONFIG.apiKey
+        },
+        body: JSON.stringify(subscriberData)
+    })
+    .then(function(response) {
+        if (MAILERLITE_CONFIG.debug) {
+            console.log('📬 MailerLite response status:', response.status);
+        }
+        
+        // Check if request was successful
+        if (response.ok) {
+            return response.json();
+        } else {
+            // Handle errors
+            return response.json().then(function(errorData) {
+                throw new Error(errorData.message || 'Subscription failed');
+            });
+        }
+    })
+    .then(function(data) {
+        // Success!
+        if (MAILERLITE_CONFIG.debug) {
+            console.log('✅ Email successfully added to MailerLite:', data);
+        }
+        
+        // Show success message
+        message.classList.remove('error');
+        message.textContent = '🎉 You\'re on the list! Check your email for early access details.';
+        message.classList.add('show');
+        
+        // Hide form
+        form.style.display = 'none';
+        
+        // Optional: Track conversion with analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'conversion', {
+                'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
+                'value': 1.0,
+                'currency': 'USD'
+            });
+        }
+        
+        // Optional: Track with Facebook Pixel
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'Lead', {
+                content_name: 'PromptQuest Waitlist',
+                value: 1.0,
+                currency: 'USD'
+            });
+        }
+    })
+    .catch(function(error) {
+        // Error handling
+        console.error('❌ Error submitting email:', error);
+        
+        // Re-enable form
+        input.disabled = false;
+        button.disabled = false;
+        button.textContent = formNumber === 1 ? 'Join the Waitlist (Free)' : 'Get Early Access';
+        
+        // Show error message
+        var errorMessage = 'Oops! Something went wrong. ';
+        
+        // Check for specific errors
+        if (error.message.includes('already exists') || error.message.includes('duplicate')) {
+            errorMessage = '✉️ You\'re already on the list! Check your email.';
+        } else if (error.message.includes('invalid email')) {
+            errorMessage = '❌ Please enter a valid email address.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        
+        showError(message, errorMessage);
+    });
     
     return false;
 }
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Validate email format
+ */
+function isValidEmail(email) {
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Show error message
+ */
+function showError(messageElement, text) {
+    messageElement.classList.add('error');
+    messageElement.textContent = text;
+    messageElement.classList.add('show');
+    
+    // Auto-hide error after 5 seconds
+    setTimeout(function() {
+        messageElement.classList.remove('show');
+    }, 5000);
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+// Check configuration on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if (MAILERLITE_CONFIG.debug) {
+        console.log('🚀 PromptQuest Email Collection initialized');
+        
+        if (MAILERLITE_CONFIG.apiKey === 'YOUR_MAILERLITE_API_KEY_HERE') {
+            console.warn('⚠️ WARNING: MailerLite API key not configured!');
+            console.log('📝 To fix: Edit page-landing.php and add your API key from mailerlite.com');
+        } else {
+            console.log('✅ MailerLite API key configured');
+        }
+    }
+});
 </script>
 
 <?php wp_footer(); ?>
