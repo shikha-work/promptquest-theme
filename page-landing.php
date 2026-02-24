@@ -662,6 +662,7 @@ var MAILERLITE_CONFIG = {
 // ============================================
 
 function handlePQSubmit(event, formNumber) {
+    console.log('###Shikha : Form submission triggered for form #' + formNumber);
     event.preventDefault();
     
     // Get form elements
