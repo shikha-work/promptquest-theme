@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php bloginfo('name'); ?> | Master AI Prompting, makes life better</title>
+    <title><?php bloginfo('name'); ?> | Master AI Prompting</title>
     
     <?php wp_head(); ?>
     
